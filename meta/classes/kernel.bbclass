@@ -231,6 +231,8 @@ kernel_do_install() {
 	[ -e Module.symvers ] && install -m 0644 Module.symvers ${D}/boot/Module.symvers-${KERNEL_VERSION}
 	install -d ${D}${sysconfdir}/modules-load.d
 	install -d ${D}${sysconfdir}/modprobe.d
+
+	mk_shared_workdir
 }
 do_install[prefuncs] += "package_get_auto_pr"
 
@@ -245,7 +247,7 @@ emit_depmod_pkgdata() {
 
 PACKAGEFUNCS += "emit_depmod_pkgdata"
 
-do_shared_workdir () {
+mk_shared_workdir () {
 	cd ${B}
 
 	kerneldir=${STAGING_KERNEL_BUILDDIR}
@@ -287,6 +289,14 @@ do_shared_workdir () {
 		mkdir -p $kerneldir/arch/${ARCH}/include/generated/
 		cp -fR arch/${ARCH}/include/generated/* $kerneldir/arch/${ARCH}/include/generated/
 	fi
+}
+
+# NOTE!!! Functionality of do_shared_workdir has been moved to mk_shared_workdir
+# and called from kernel_do_compile.
+# It caused race condition with do_compile_kernelmodules when it runs
+# in parallel with do_compile_kernelmodules
+do_shared_workdir () {
+	:
 }
 
 # We don't need to stage anything, not the modules/firmware since those would clash with linux-firmware
